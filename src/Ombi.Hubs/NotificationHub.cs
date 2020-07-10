@@ -27,8 +27,10 @@ namespace Ombi.Hubs
                 return UsersOnline.Where(x => x.Value.Roles.Contains(OmbiRoles.Admin)).Select(x => x.Key).ToList();
             }
         }
-
+        
         public const string NotificationEvent = "Notification";
+
+        public const string NotificationCenterEvent = "NotificationCenter";
 
         private readonly OmbiUserManager _userManager;
 
@@ -62,6 +64,17 @@ namespace Ombi.Hubs
         public Task Notification(string data)
         {
             return Clients.All.SendAsync(NotificationEvent, data);
+        }
+
+        public async Task NewNotificationCenter(string data, string userId)
+        {
+            var user = UsersOnline.FirstOrDefault(x => x.Value.UserId == userId);
+            if(user.Key == null)
+            {
+                return;
+            }
+            
+            await Clients.Client(user.Key).SendAsync(NotificationCenterEvent, data);
         }
     }
 
